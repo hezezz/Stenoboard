@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stenoboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#09090b;
+  --panel:#121215;
+  --panel2:#18181c;
+  --panel-glass:rgba(18,18,21,.75);
+  --ink:#f4f1ea;
+  --mut:#9c9789;
+  --line:#2a2822;
+  --line-light:rgba(212,175,55,.18);
+  --gold:#d4af37;
+  --gold2:#f3d67e;
+  --gold-bg:rgba(212,175,55,.12);
+  --gold-glow:rgba(212,175,55,.32);
+  --halo:rgba(212,175,55,.14);
+  --key:#1a1a1e;
+  --keyb:#36332a;
+  --key-shadow:rgba(0,0,0,.6);
+  --onink:#171200;
+  --bad:#ff6557;
+  --bad-glow:rgba(255,101,87,.25);
+  --good:#34d399;
+  --good-glow:rgba(52,211,153,.25);
+  --tape:#0b0b0d;
+  --tapeink:#eed886;
+  --radius-lg:20px;
+  --radius-md:14px;
+  --radius-sm:8px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
+:root[data-theme="light"]{
+  --bg:#f8f5ee;
+  --panel:#ffffff;
+  --panel2:#f5f0e1;
+  --panel-glass:rgba(255,255,255,.85);
+  --ink:#1a160a;
+  --mut:#706852;
+  --line:#e4dcbf;
+  --line-light:rgba(168,130,15,.2);
+  --gold:#a8820f;
+  --gold2:#7d6006;
+  --gold-bg:rgba(168,130,15,.1);
+  --gold-glow:rgba(168,130,15,.22);
+  --halo:rgba(168,130,15,.09);
+  --key:#fffef9;
+  --keyb:#d7ccaa;
+  --key-shadow:rgba(168,130,15,.15);
+  --onink:#fffceb;
+  --bad:#d93829;
+  --bad-glow:rgba(217,56,41,.2);
+  --good:#059669;
+  --good-glow:rgba(5,150,105,.2);
+  --tape:#fcfaf3;
+  --tapeink:#4a3905
+}
+*{box-sizing:border-box}
+html,body{margin:0;color:var(--ink);font:400 16px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  background:radial-gradient(1100px 450px at 50% -120px,var(--halo),transparent 75%),var(--bg);
+  min-height:100vh
+}
+main{max-width:920px;margin:0 auto;padding:28px 18px 64px}
+.header-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--gold-bg);
+  border:1px solid var(--line-light);
+  color:var(--gold2);
+  font:600 11px/1 "IBM Plex Mono",monospace;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:6px
+}
+.header-tag::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 8px var(--gold)
+}
+h1{
+  font-size:clamp(36px,7vw,56px);
+  line-height:1.05;
+  margin:4px 0 8px;
+  letter-spacing:-.03em;
+  font-weight:700;
+  color:var(--gold2);
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  flex-wrap:wrap
+}
+.lede{margin:0 0 20px;color:var(--mut);max-width:62ch;font-size:16px;line-height:1.6}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 16px}
+button{font:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--ink);
+  border-radius:999px;
+  padding:8px 16px;
+  font-weight:700;
+  font-size:14px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:all .18s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 2px 6px rgba(0,0,0,.15)
+}
+.btn:hover{border-color:var(--gold);transform:translateY(-1px);color:var(--gold2)}
+.btn:active{transform:translateY(1px)}
+.btn[aria-pressed="true"]{
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:var(--onink);
+  border-color:var(--gold);
+  box-shadow:0 0 16px var(--gold-glow)
+}
+.btn-outline{
+  background:transparent;
+  border-color:var(--line)
+}
+
+/* Practice Drill Card */
+.drill{
+  display:none;
+  border:1px solid var(--line-light);
+  background:var(--panel);
+  border-radius:var(--radius-lg);
+  padding:16px 20px;
+  margin:0 0 16px;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:0 20px 45px -20px var(--key-shadow),0 0 0 1px var(--line-light);
+  transition:box-shadow .2s ease,border-color .2s ease
+}
+.drill.show{display:flex}
+.drill.good{box-shadow:0 0 0 3px var(--good),0 0 32px var(--good-glow);border-color:var(--good)}
+.drill.bad{box-shadow:0 0 0 3px var(--bad),0 0 32px var(--bad-glow);border-color:var(--bad)}
+
+/* Quiz Category Switcher */
+.quiz-nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line)
+}
+.quiz-nav-label{
+  font:600 11px/1 "IBM Plex Mono",monospace;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--mut);
+  margin-right:4px
+}
+.q-btn{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--mut);
+  border-radius:999px;
+  padding:5px 12px;
+  font-size:13px;
+  font-weight:700;
+  transition:all .15s ease
+}
+.q-btn:hover{color:var(--ink);border-color:var(--gold)}
+.q-btn[aria-pressed="true"]{
+  background:var(--gold-bg);
+  border-color:var(--gold);
+  color:var(--gold2)
+}
+
+.drill-body{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap
+}
+.drill-main{flex:1;min-width:240px}
+.drill .w{
+  font-size:clamp(26px,5.5vw,38px);
+  font-weight:700;
+  line-height:1.2;
+  color:var(--gold2);
+  margin-bottom:4px
+}
+.drill .o{
+  font-family:"IBM Plex Mono",monospace;
+  color:var(--ink);
+  font-size:16px;
+  min-height:1.6em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap
+}
+.drill-badge{
+  font:600 12px "IBM Plex Mono",monospace;
+  background:var(--gold-bg);
+  border:1px solid var(--line-light);
+  color:var(--gold2);
+  padding:2px 8px;
+  border-radius:6px
+}
+.drill-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.drill .st{
+  color:var(--mut);
+  font-size:14px;
+  text-align:right;
+  line-height:1.4;
+  font-family:"IBM Plex Mono",monospace
+}
+.drill .st b{color:var(--gold2);font-weight:600}
+
+/* Sentence Practice View */
+.sentence-wrap{
+  font-size:clamp(20px,4.2vw,28px);
+  line-height:1.45;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:4px 8px
+}
+.s-word{
+  display:inline-block;
+  transition:all .15s ease;
+  border-radius:6px;
+  padding:1px 4px
+}
+.s-word.done{
+  color:var(--mut);
+  opacity:.7
+}
+.s-word.curr{
+  color:var(--gold2);
+  font-weight:700;
+  background:var(--gold-bg);
+  border:1px solid var(--gold);
+  box-shadow:0 0 14px var(--gold-glow);
+  transform:scale(1.04)
+}
+.s-word.next{
+  color:var(--ink);
+  opacity:.8
+}
+
+/* IO Cards Grid */
+.io{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin:0 0 16px}
+@media (max-width:680px){.io{grid-template-columns:1fr}}
+.card{
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  min-width:0;
+  box-shadow:0 20px 45px -25px var(--key-shadow),inset 0 1px 0 rgba(255,255,255,.03);
+  position:relative
+}
+.card h2{
+  font-size:15px;
+  margin:0 0 12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--gold2);
+  font-weight:700;
+  letter-spacing:-.01em
+}
+.card h2 button{
+  font-size:13px;
+  border:0;
+  background:none;
+  color:var(--mut);
+  text-decoration:none;
+  padding:2px 6px;
+  border-radius:4px;
+  transition:color .15s
+}
+.card h2 button:hover{color:var(--gold2);text-decoration:underline}
+#tape{
+  background:var(--tape);
+  color:var(--tapeink);
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  padding:10px 14px;
+  height:210px;
+  overflow:auto;
+  font:500 12px/1.7 "IBM Plex Mono",monospace;
+  white-space:pre;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.4)
+}
+#tape .h{color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:4px}
+#tape .r{display:flex;justify-content:space-between;gap:12px;width:max-content;min-width:100%;border-top:1px dotted var(--line)}
+#tape .r b{font-weight:600;color:var(--gold2)}
+#out{
+  min-height:210px;
+  max-height:210px;
+  overflow-y:auto;
+  font-size:22px;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+  padding:6px 2px
+}
+#out:empty::before{
+  content:"Your strokes turn into words here. Type chords to translate.";
+  color:var(--mut);
+  font-size:15px;
+  font-style:italic
+}
+
+/* Stenotype Keyboard */
+#kb{
+  display:grid;
+  grid-template-columns:repeat(11,minmax(0,1fr));
+  grid-template-rows:auto repeat(3,clamp(52px,11vw,74px));
+  gap:8px;
+  padding:18px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:0 28px 65px -32px var(--key-shadow),inset 0 1px 0 rgba(255,255,255,.04);
+  margin:0 0 18px;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none
+}
+.k{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--keyb);
+  border-bottom-width:4px;
+  background:var(--key);
+  color:var(--ink);
+  border-radius:var(--radius-md);
+  font-weight:700;
+  font-size:clamp(16px,3.7vw,23px);
+  padding:0;
+  touch-action:none;
+  transition:transform .05s cubic-bezier(.2,0,0,1),background .1s,box-shadow .15s,border-color .15s;
+  box-shadow:0 3px 6px rgba(0,0,0,.25)
+}
+.k small{
+  position:absolute;
+  right:6px;
+  top:4px;
+  font:500 10px "IBM Plex Mono",monospace;
+  color:var(--mut);
+  opacity:.8
+}
+.hide small{display:none}
+.k.num{font-size:13px;min-height:32px;border-radius:10px}
+.k.t{
+  border-color:var(--gold);
+  box-shadow:inset 0 0 0 2px var(--gold),0 0 14px var(--gold-glow);
+  color:var(--gold2);
+  background:var(--gold-bg)
+}
+.k.on{
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:var(--onink);
+  border-color:var(--gold);
+  box-shadow:0 0 24px var(--gold-glow);
+  transform:translateY(3px);
+  border-bottom-width:1px
+}
+.k.on small{color:var(--onink);opacity:.9}
+
+/* Accordion */
+details{
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:var(--radius-lg);
+  padding:14px 18px;
+  box-shadow:0 10px 30px -15px var(--key-shadow)
+}
+summary{cursor:pointer;font-weight:700;color:var(--gold2);font-size:15px;user-select:none}
+details p,details li{color:var(--mut);font-size:15px;line-height:1.6}
+details ul{padding-left:22px;margin:10px 0 6px}
+details li{margin-bottom:6px}
+code{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--gold2);background:var(--panel2);padding:2px 5px;border-radius:4px;border:1px solid var(--line)}
+
+/* Welcome Landing Modal */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(5,5,7,.82);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:999;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease
+}
+.modal-overlay.open{
+  opacity:1;
+  pointer-events:auto
+}
+.modal-card{
+  background:var(--panel);
+  border:1px solid var(--line-light);
+  border-radius:24px;
+  max-width:620px;
+  width:100%;
+  padding:28px 24px 22px;
+  box-shadow:0 35px 80px -25px #000,0 0 0 1px var(--line-light);
+  position:relative;
+  transform:scale(.95) translateY(8px);
+  transition:transform .25s cubic-bezier(.16,1,.3,1)
+}
+.modal-overlay.open .modal-card{
+  transform:scale(1) translateY(0)
+}
+.modal-close{
+  position:absolute;
+  right:16px;
+  top:16px;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--mut);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  line-height:1;
+  transition:all .15s
+}
+.modal-close:hover{border-color:var(--gold);color:var(--gold2)}
+.modal-header{margin-bottom:18px}
+.modal-header h2{
+  font-size:clamp(22px,5vw,28px);
+  margin:4px 0 6px;
+  color:var(--gold2);
+  font-weight:700
+}
+.modal-header p{margin:0;color:var(--mut);font-size:15px;line-height:1.55}
+.modes-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:20px
+}
+@media (max-width:540px){.modes-grid{grid-template-columns:1fr}}
+.mode-tile{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  border-radius:14px;
+  padding:14px;
+  text-align:left;
+  cursor:pointer;
+  transition:all .18s cubic-bezier(.16,1,.3,1);
+  display:flex;
+  flex-direction:column;
+  gap:4px
+}
+.mode-tile:hover{
+  border-color:var(--gold);
+  background:var(--gold-bg);
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px -8px var(--gold-glow)
+}
+.mode-tile-icon{font-size:20px}
+.mode-tile-title{font-weight:700;color:var(--ink);font-size:15px}
+.mode-tile-desc{font-size:12px;color:var(--mut);line-height:1.4}
+.modal-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  gap:10px;
+  flex-wrap:wrap
+}
+
+@media (prefers-reduced-motion:reduce){.k,.btn,.modal-overlay,.modal-card,.mode-tile{transition:none}}
+</style>
+</head>
+<body>
+
+<main>
+<div class="header-tag">Stenotype Chord System</div>
+<h1>Stenoboard</h1>
+<p class="lede">Press several keys together, then let go. Your laptop keyboard works as a stenotype, chording strokes into words on the live paper tape.</p>
+
+<div class="bar">
+<button class="btn" id="mode" aria-pressed="false">Practice mode</button>
+<button class="btn" id="hints" aria-pressed="true">Laptop key hints</button>
+<button class="btn" id="theme" aria-pressed="true">Dark theme</button>
+<button class="btn btn-outline" id="welcome-btn" title="View Welcome & Guide">Guide & Quizzes</button>
+</div>
+
+<div class="drill" id="drill" aria-live="polite">
+<div class="quiz-nav">
+<span class="quiz-nav-label">Quiz:</span>
+<button class="q-btn" data-quiz="sentence" aria-pressed="true">📝 Sentences</button>
+<button class="q-btn" data-quiz="abbr" aria-pressed="false">⚡ Abbreviations</button>
+<button class="q-btn" data-quiz="days" aria-pressed="false">📅 Days of Week</button>
+<button class="q-btn" data-quiz="months" aria-pressed="false">🗓️ Months</button>
+<button class="q-btn" data-quiz="all" aria-pressed="false">🔤 All Vocabulary</button>
+</div>
+
+<div class="drill-body">
+<div class="drill-main">
+<div class="w" id="dw"></div>
+<div class="o" id="do"></div>
+</div>
+<div class="drill-actions">
+<div class="st" id="ds"></div>
+<button class="btn" id="skip">Skip</button>
+<button class="btn" id="hb" aria-pressed="true">Show keys</button>
+</div>
+</div>
+</div>
+
+<div class="io">
+<section class="card">
+<h2>Paper tape <button id="cl">Clear</button></h2>
+<div id="tape"></div>
+</section>
+<section class="card">
+<h2>Words</h2>
+<div id="out"></div>
+</section>
+</div>
+
+<div id="kb" aria-label="Steno keyboard"></div>
+
+<details>
+<summary>How the keys work & quiz guide</summary>
+<ul>
+<li>A steno stroke is every key you hold at once. It is sent when you release them all, so press the whole chord together.</li>
+<li><b>Top row on laptop:</b> <code>Q W E R</code> = S T P H, <code>T Y</code> = star (*), <code>U I O P [</code> = F P L T D.</li>
+<li><b>Home row:</b> <code>A S D F</code> = S K W R, <code>G H</code> = star (*), <code>J K L ; ’</code> = R B G S Z.</li>
+<li><b>Thumbs:</b> <code>C V</code> = A O, <code>N M</code> = E U. Any number key is the number bar (<code>#</code>).</li>
+<li><b>Star (*) on its own:</b> Deletes the last word typed, like the classic correction mark.</li>
+<li><b>Quizzes available:</b> Sentence practice (type real phrases word-by-word), Steno Abbreviation briefs quiz, Days of the Week, and Months of the Year.</li>
+<li><b>Hardware note:</b> Many laptop keyboards can only read 4 to 6 keys simultaneously. If chords drop keys, an external NKRO keyboard or screen multi-touch is recommended.</li>
+</ul>
+</details>
+</main>
+
+<!-- Welcome Landing Modal -->
+<div class="modal-overlay" id="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+<div class="modal-card">
+<button class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+<div class="modal-header">
+<div class="header-tag">Interactive Steno Tutor</div>
+<h2 id="modal-title">Welcome to Stenoboard</h2>
+<p>Master machine shorthand on your laptop. Chording allows you to press groups of keys together to write full syllables, words, and briefs in a single stroke.</p>
+</div>
+
+<div class="modes-grid">
+<div class="mode-tile" data-mode="sentence">
+<div class="mode-tile-icon">📝</div>
+<div class="mode-tile-title">Sentence Practice</div>
+<div class="mode-tile-desc">Drill 30 real-world sentences stroke-by-stroke with guided target chords.</div>
+</div>
+
+<div class="mode-tile" data-mode="abbr">
+<div class="mode-tile-icon">⚡</div>
+<div class="mode-tile-title">Abbreviation Quiz</div>
+<div class="mode-tile-desc">Test classic high-speed steno briefs like 'about', 'doctor', and 'opinion'.</div>
+</div>
+
+<div class="mode-tile" data-mode="days">
+<div class="mode-tile-icon">📅</div>
+<div class="mode-tile-title">Days of the Week</div>
+<div class="mode-tile-desc">Learn and drill chords for Sunday through Saturday.</div>
+</div>
+
+<div class="mode-tile" data-mode="months">
+<div class="mode-tile-icon">🗓️</div>
+<div class="mode-tile-title">Months of the Year</div>
+<div class="mode-tile-desc">Practice standard outlines for January through December.</div>
+</div>
+</div>
+
+<div class="modal-footer">
+<button class="btn btn-outline" id="free-type-btn">Free Typing Mode</button>
+<button class="btn" id="start-drill-btn" aria-pressed="true">Start Sentence Drill</button>
+</div>
+</div>
+</div>
+
+<script>
+const N="#STKPWHRAO*EUFRPBLGTSDZ";
+const DICT={
+  "A":"a / an","PW":"about","SEP":"accept","K-T":"account","TEUS":"advertise","AFT":"after","HR-R":"already","ALS":"always","APB":"and","AOT":"another","TPHEU":"any","R":"are / hour / our","SK":"ask","T":"at / the / it","-B":"be / been","PWREU":"bring","PWEUS":"business","K":"can","KARBG":"character","SEURBG":"circumstance","RBGS":"comma (,)","KR":"consider","KOR":"correspondence","KO":"could / company","TK":"defendant / case","TKEPT":"department","TKR":"doctor","KHRO":"enclose","TPEU":"file","TPR":"from / form","TKPWHR":"glad","-G":"go / gone","E":"he","EU":"I (vowel I)","-F":"if / for / of","POR":"important / importance","TPH":"in / not","TPH-FR":"inform / information","TPH-T":"interest","S":"is / his","HRAT":"Latin","HRAUR":"lawyer","HREUT":"literature","TPHES":"necessary","TPHO":"number","O":"on / over","OP":"open","PEUPB":"opinion","TUPBT":"opportunity","OD":"order","ORG":"organize / organization","P-T":"part / point","TEUBG":"particular","FPLT":"period (.)","P":"plaintiff","PR":"president / present / public relations","PREUPB":"principal / principle","PR-G":"progress","PUR":"purchase","STPH":"question mark (?)","R-R":"railroad","REG":"regular","REB":"remember","PHREU":"reply","R-S":"respect","SAE":"satisfy / satisfaction / satisfactory","ST":"street","ST-S":"streets","SUBG":"success","SUG":"suggest / suggestion","TA":"take","TAS":"takes","TKA":"today","TPHEUT":"tonight","UPBD":"under","POPB":"upon","WR":"where","HR":"will / well","W":"with","WO":"would / did","U":"you",
+  // Days of the week
+  "SUPB":"Sunday","PHOPB":"Monday","TUS":"Tuesday","WED":"Wednesday","THURS":"Thursday","THUR":"Thursday","TPREU":"Friday","SAT":"Saturday",
+  // Months
+  "SKWRAPB":"January","TPEB":"February","PHAR":"March","AP":"April","PHAE":"May","SKWRUPB":"June","SKWRAOPB":"June","SKWRUL":"July","AUG":"August","SEPT":"September","OBG":"October","TPHOF":"November","TKES":"December"
+};
+
+for(const o of Object.keys(DICT)){
+  const k=parse(o),c=k.length?fmt(k):"";
+  if(c!==o){
+    const w=DICT[o];
+    delete DICT[o];
+    if(c&&!(c in DICT))DICT[c]=w
+  }
+}
+DICT["STPH"]="?";DICT["-FPLT"]=".";DICT["R-BGS"]=",";
+
+const DAYS_OF_WEEK = [
+  ["PHOPB","Monday"],["TUS","Tuesday"],["WED","Wednesday"],
+  ["THURS","Thursday"],["TPREU","Friday"],["SAT","Saturday"],["SUPB","Sunday"]
+];
+
+const MONTHS = [
+  ["SKWRAPB","January"],["TPEB","February"],["PHAR","March"],["AP","April"],
+  ["PHAE","May"],["SKWRUPB","June"],["SKWRUL","July"],["AUG","August"],
+  ["SEPT","September"],["OBG","October"],["TPHOF","November"],["TKES","December"]
+];
+
+const ABBREVIATIONS = [
+  ["PW","about"],["SEP","accept"],["K-T","account"],["TEUS","advertise"],
+  ["AFT","after"],["HR-R","already"],["ALS","always"],["APB","and"],
+  ["AOT","another"],["TPHEU","any"],["SK","ask"],["-B","be / been"],
+  ["PWREU","bring"],["PWEUS","business"],["K","can"],["KARBG","character"],
+  ["SEURBG","circumstance"],["KR","consider"],["KOR","correspondence"],
+  ["KO","could / company"],["TK","defendant / case"],["TKEPT","department"],
+  ["TKR","doctor"],["KHRO","enclose"],["TPEU","file"],["TPR","from / form"],
+  ["TKPWHR","glad"],["-G","go / gone"],["POR","important / importance"],
+  ["TPH-FR","inform / information"],["TPH-T","interest"],["HRAUR","lawyer"],
+  ["HREUT","literature"],["TPHES","necessary"],["TPHO","number"],["OP","open"],
+  ["PEUPB","opinion"],["TUPBT","opportunity"],["OD","order"],
+  ["ORG","organize / organization"],["P-T","part / point"],["TEUBG","particular"],
+  ["P","plaintiff"],["PR","president / public relations"],
+  ["PREUPB","principal / principle"],["PR-G","progress"],["PUR","purchase"],
+  ["R-R","railroad"],["REG","regular"],["REB","remember"],["PHREU","reply"],
+  ["R-S","respect"],["SAE","satisfy / satisfaction"],["ST","street"],
+  ["ST-S","streets"],["SUBG","success"],["SUG","suggest / suggestion"],
+  ["TA","take"],["TAS","takes"],["TKA","today"],["TPHEUT","tonight"],
+  ["UPBD","under"],["POPB","upon"],["WR","where"],["WO","would / did"]
+];
+
+const SENTENCES = [
+  { text: "The doctor will be with you today.", items: [ {w:"The",s:"T"},{w:"doctor",s:"TKR"},{w:"will",s:"HR"},{w:"be",s:"-B"},{w:"with",s:"W"},{w:"you",s:"U"},{w:"today",s:"TKA"} ] },
+  { text: "He will remember you.", items: [ {w:"He",s:"E"},{w:"will",s:"HR"},{w:"remember",s:"REB"},{w:"you",s:"U"} ] },
+  { text: "You can take the order today.", items: [ {w:"You",s:"U"},{w:"can",s:"K"},{w:"take",s:"TA"},{w:"the",s:"T"},{w:"order",s:"OD"},{w:"today",s:"TKA"} ] },
+  { text: "The lawyer will file the case.", items: [ {w:"The",s:"T"},{w:"lawyer",s:"HRAUR"},{w:"will",s:"HR"},{w:"file",s:"TPEU"},{w:"the",s:"T"},{w:"case",s:"TK"} ] },
+  { text: "I will bring you success.", items: [ {w:"I",s:"EU"},{w:"will",s:"HR"},{w:"bring",s:"PWREU"},{w:"you",s:"U"},{w:"success",s:"SUBG"} ] },
+  { text: "It is important to remember.", items: [ {w:"It",s:"T"},{w:"is",s:"S"},{w:"important",s:"POR"},{w:"to",s:"T"},{w:"remember",s:"REB"} ] },
+  { text: "The company will open on Friday.", items: [ {w:"The",s:"T"},{w:"company",s:"KO"},{w:"will",s:"HR"},{w:"open",s:"OP"},{w:"on",s:"O"},{w:"Friday",s:"TPREU"} ] },
+  { text: "Where will you go tonight?", items: [ {w:"Where",s:"WR"},{w:"will",s:"HR"},{w:"you",s:"U"},{w:"go",s:"-G"},{w:"tonight",s:"TPHEUT"} ] },
+  { text: "He will inform the president.", items: [ {w:"He",s:"E"},{w:"will",s:"HR"},{w:"inform",s:"TPH-FR"},{w:"the",s:"T"},{w:"president",s:"PR"} ] },
+  { text: "Take the opportunity and go.", items: [ {w:"Take",s:"TA"},{w:"the",s:"T"},{w:"opportunity",s:"TUPBT"},{w:"and",s:"APB"},{w:"go",s:"-G"} ] },
+  { text: "I will ask about another business.", items: [ {w:"I",s:"EU"},{w:"will",s:"HR"},{w:"ask",s:"SK"},{w:"about",s:"PW"},{w:"another",s:"AOT"},{w:"business",s:"PWEUS"} ] },
+  { text: "You can consider regular progress.", items: [ {w:"You",s:"U"},{w:"can",s:"K"},{w:"consider",s:"KR"},{w:"regular",s:"REG"},{w:"progress",s:"PR-G"} ] },
+  { text: "The department will organize the progress.", items: [ {w:"The",s:"T"},{w:"department",s:"TKEPT"},{w:"will",s:"HR"},{w:"organize",s:"ORG"},{w:"the",s:"T"},{w:"progress",s:"PR-G"} ] },
+  { text: "He will reply with respect.", items: [ {w:"He",s:"E"},{w:"will",s:"HR"},{w:"reply",s:"PHREU"},{w:"with",s:"W"},{w:"respect",s:"R-S"} ] },
+  { text: "The doctor will be in on Wednesday.", items: [ {w:"The",s:"T"},{w:"doctor",s:"TKR"},{w:"will",s:"HR"},{w:"be",s:"-B"},{w:"in",s:"TPH"},{w:"on",s:"O"},{w:"Wednesday",s:"WED"} ] },
+  { text: "You will purchase the railroad in August.", items: [ {w:"You",s:"U"},{w:"will",s:"HR"},{w:"purchase",s:"PUR"},{w:"the",s:"T"},{w:"railroad",s:"R-R"},{w:"in",s:"TPH"},{w:"August",s:"AUG"} ] },
+  { text: "The defendant will accept the order on Monday.", items: [ {w:"The",s:"T"},{w:"defendant",s:"TK"},{w:"will",s:"HR"},{w:"accept",s:"SEP"},{w:"the",s:"T"},{w:"order",s:"OD"},{w:"on",s:"O"},{w:"Monday",s:"PHOPB"} ] },
+  { text: "The lawyer will be glad on Tuesday.", items: [ {w:"The",s:"T"},{w:"lawyer",s:"HRAUR"},{w:"will",s:"HR"},{w:"be",s:"-B"},{w:"glad",s:"TKPWHR"},{w:"on",s:"O"},{w:"Tuesday",s:"TUS"} ] },
+  { text: "He will suggest another particular order.", items: [ {w:"He",s:"E"},{w:"will",s:"HR"},{w:"suggest",s:"SUG"},{w:"another",s:"AOT"},{w:"particular",s:"TEUBG"},{w:"order",s:"OD"} ] },
+  { text: "The president will be glad in December.", items: [ {w:"The",s:"T"},{w:"president",s:"PR"},{w:"will",s:"HR"},{w:"be",s:"-B"},{w:"glad",s:"TKPWHR"},{w:"in",s:"TPH"},{w:"December",s:"TKES"} ] },
+  { text: "The doctor will file the case in January.", items: [ {w:"The",s:"T"},{w:"doctor",s:"TKR"},{w:"will",s:"HR"},{w:"file",s:"TPEU"},{w:"the",s:"T"},{w:"case",s:"TK"},{w:"in",s:"TPH"},{w:"January",s:"SKWRAPB"} ] },
+  { text: "It is necessary to inform the department.", items: [ {w:"It",s:"T"},{w:"is",s:"S"},{w:"necessary",s:"TPHES"},{w:"to",s:"T"},{w:"inform",s:"TPH-FR"},{w:"the",s:"T"},{w:"department",s:"TKEPT"} ] },
+  { text: "I would remember the street and number.", items: [ {w:"I",s:"EU"},{w:"would",s:"WO"},{w:"remember",s:"REB"},{w:"the",s:"T"},{w:"street",s:"ST"},{w:"and",s:"APB"},{w:"number",s:"TPHO"} ] },
+  { text: "You will satisfy the principal interest in March.", items: [ {w:"You",s:"U"},{w:"will",s:"HR"},{w:"satisfy",s:"SAE"},{w:"the",s:"T"},{w:"principal",s:"PREUPB"},{w:"interest",s:"TPH-T"},{w:"in",s:"TPH"},{w:"March",s:"PHAR"} ] },
+  { text: "The company will advertise in April and May.", items: [ {w:"The",s:"T"},{w:"company",s:"KO"},{w:"will",s:"HR"},{w:"advertise",s:"TEUS"},{w:"in",s:"TPH"},{w:"April",s:"AP"},{w:"and",s:"APB"},{w:"May",s:"PHAE"} ] },
+  { text: "The president will enclose the correspondence in June.", items: [ {w:"The",s:"T"},{w:"president",s:"PR"},{w:"will",s:"HR"},{w:"enclose",s:"KHRO"},{w:"the",s:"T"},{w:"correspondence",s:"KOR"},{w:"in",s:"TPH"},{w:"June",s:"SKWRUPB"} ] },
+  { text: "We are always glad to bring success.", items: [ {w:"We",s:"R"},{w:"always",s:"ALS"},{w:"glad",s:"TKPWHR"},{w:"to",s:"T"},{w:"bring",s:"PWREU"},{w:"success",s:"SUBG"} ] },
+  { text: "Can you take the account in October or November?", items: [ {w:"Can",s:"K"},{w:"you",s:"U"},{w:"take",s:"TA"},{w:"the",s:"T"},{w:"account",s:"K-T"},{w:"in",s:"TPH"},{w:"October",s:"OBG"},{w:"November",s:"TPHOF"} ] },
+  { text: "He will ask the plaintiff on Thursday.", items: [ {w:"He",s:"E"},{w:"will",s:"HR"},{w:"ask",s:"SK"},{w:"the",s:"T"},{w:"plaintiff",s:"P"},{w:"on",s:"O"},{w:"Thursday",s:"THURS"} ] },
+  { text: "It is an important opportunity for you.", items: [ {w:"It",s:"T"},{w:"is",s:"S"},{w:"an",s:"A"},{w:"important",s:"POR"},{w:"opportunity",s:"TUPBT"},{w:"for",s:"-F"},{w:"you",s:"U"} ] }
+];
+
+const NUM={1:"1",2:"2",4:"3",6:"4",8:"5",9:"0",13:"6",15:"7",17:"8",19:"9"};
+const INI={A:"A",PW:"B",K:"C/K",S:"C/S",TK:"D",E:"E",TP:"F",TKPW:"G",H:"H",EU:"I",SKWR:"J",HR:"L",PH:"M",TPH:"N",O:"O",P:"P",KW:"Q",R:"R",T:"T",U:"U",SR:"V",W:"W",KP:"X",KWR:"Y",STKPW:"Z"};
+const FIN={"-B":"B","-BG":"C/K/Q","-S":"C/S","-D":"D","-F":"F/V","-G":"G","-L":"L","-PL":"M","-PB":"N","-P":"P","-R":"R","-T":"T","-PBLG":"J","-BGS":"X","-Z":"Z"};
+const VOW=["A","E","O","U","EU"];
+const lab=o=>INI[o]?(VOW.includes(o)?INI[o]:INI[o]+"-"):FIN[o]?"-"+FIN[o]:o;
+const MAP={KeyQ:1,KeyA:1,KeyW:2,KeyS:3,KeyE:4,KeyD:5,KeyR:6,KeyF:7,KeyC:8,KeyV:9,KeyT:10,KeyG:10,KeyY:10,KeyH:10,KeyN:11,KeyM:12,KeyU:13,KeyJ:14,KeyI:15,KeyK:16,KeyO:17,KeyL:18,KeyP:19,Semicolon:20,BracketLeft:21,Quote:22,Minus:0,Equal:0,Digit0:0};
+for(let i=1;i<10;i++)MAP["Digit"+i]=0;
+const HINT={1:"Q A",2:"W",3:"S",4:"E",5:"D",6:"R",7:"F",8:"C",9:"V",10:"T Y G H",11:"N",12:"M",13:"U",14:"J",15:"I",16:"K",17:"O",18:"L",19:"P",20:";",21:"[",22:"’",0:"1–0"};
+const LAY=[[0,"#",1,12,1,2],[1,"S",1,2,2,4],[2,"T",2,3,2,3],[3,"K",2,3,3,4],[4,"P",3,4,2,3],[5,"W",3,4,3,4],[6,"H",4,5,2,3],[7,"R",4,5,3,4],[10,"*",5,6,2,4],[10,"*",6,7,2,4],[13,"F",7,8,2,3],[14,"R",7,8,3,4],[15,"P",8,9,2,3],[16,"B",8,9,3,4],[17,"L",9,10,2,3],[18,"G",9,10,3,4],[19,"T",10,11,2,3],[20,"S",10,11,3,4],[21,"D",11,12,2,3],[22,"Z",11,12,3,4],[8,"A",3,4,4,5],[9,"O",4,5,4,5],[11,"E",8,9,4,5],[12,"U",9,10,4,5]];
+
+const kb=document.getElementById("kb");
+LAY.forEach(([k,l,c1,c2,r1,r2])=>{
+  const b=document.createElement("button");
+  b.type="button";
+  b.className="k"+(k===0?" num":"");
+  b.dataset.k=k;
+  b.style.gridColumn=c1+"/"+c2;
+  b.style.gridRow=r1+"/"+r2;
+  b.setAttribute("aria-label","Steno key "+l);
+  b.innerHTML=l+"<small>"+HINT[k]+"</small>";
+  b.addEventListener("pointerdown",e=>{e.preventDefault();press("p"+e.pointerId,k)});
+  kb.appendChild(b);
+});
+
+const src=new Map(),stroke=new Set(),words=[];
+let drill=false,hint=true,currentQuiz="sentence",tgt=null,ok=0,tot=0,streak=0;
+let sIndex=0,wIndex=0;
+const $=id=>document.getElementById(id);
+
+function paint(){
+  const h=new Set(src.values());
+  kb.querySelectorAll(".k").forEach(e=>e.classList.toggle("on",h.has(+e.dataset.k)));
+}
+function press(id,k){
+  if(src.has(id))return;
+  src.set(id,k);
+  stroke.add(k);
+  paint();
+}
+function release(id){
+  if(!src.delete(id))return;
+  paint();
+  if(!src.size)commit();
+}
+function fmt(s){
+  const f=(a,b)=>s.filter(i=>i>=a&&i<=b).map(i=>N[i]).join("");
+  const L=f(0,7),M=f(8,12),R=f(13,22);
+  return L+M+(!M&&R?"-":"")+R;
+}
+function parse(o){
+  const ks=[];let p=0;
+  for(const c of o){
+    if(c==="-"){p=Math.max(p,13);continue}
+    const i=N.indexOf(c,p);
+    if(i<0)return[];
+    ks.push(i);
+    p=i+1;
+  }
+  return ks;
+}
+
+function commit(){
+  const s=[...stroke].sort((a,b)=>a-b);
+  stroke.clear();
+  if(!s.length)return;
+  const o=fmt(s);
+  let w;
+  if(o==="*"){
+    words.pop();
+  }else{
+    if(s[0]===0&&s.length>1&&s.slice(1).every(i=>NUM[i])){
+      w=s.slice(1).map(i=>NUM[i]).join("");
+    }else{
+      w=DICT[o];
+    }
+    if(w===undefined)w=INI[o]||FIN[o]||"["+o+"]";
+    words.push(w);
+  }
+  $("out").textContent=words.join(" ").replace(/ ([.?,])/g,"$1");
+  const cols=N.split("").map((c,i)=>s.includes(i)?c:" ").join(" ");
+  const r=document.createElement("div");
+  r.className="r";
+  r.innerHTML="<span>"+cols.replace(/ /g," ")+"</span><b>"+lab(o)+"</b>";
+  const t=$("tape");
+  t.appendChild(r);
+  t.scrollTop=t.scrollHeight;
+  if(drill&&o!=="*")check(o);
+}
+
+function showTape(){
+  const t=$("tape");
+  t.innerHTML="";
+  const h=document.createElement("div");
+  h.className="h";
+  h.textContent=N.split("").join(" ");
+  t.appendChild(h);
+}
+
+function renderSentence(curSentence, idxActive){
+  const dw=$("dw");
+  dw.innerHTML="";
+  const wrap=document.createElement("div");
+  wrap.className="sentence-wrap";
+  curSentence.items.forEach((item,idx)=>{
+    const span=document.createElement("span");
+    span.className="s-word "+(idx<idxActive?"done":idx===idxActive?"curr":"next");
+    span.textContent=item.w;
+    wrap.appendChild(span);
+  });
+  dw.appendChild(wrap);
+}
+
+function next(){
+  if(currentQuiz==="sentence"){
+    const curSentence=SENTENCES[sIndex%SENTENCES.length];
+    const curItem=curSentence.items[wIndex];
+    tgt=[curItem.s,curItem.w];
+    renderSentence(curSentence,wIndex);
+  }else{
+    let pool;
+    if(currentQuiz==="abbr")pool=ABBREVIATIONS;
+    else if(currentQuiz==="days")pool=DAYS_OF_WEEK;
+    else if(currentQuiz==="months")pool=MONTHS;
+    else pool=Object.entries(DICT).filter(e=>!/[?.,]/.test(e[1]));
+
+    tgt=pool[Math.floor(Math.random()*pool.length)];
+    $("dw").textContent=tgt[1];
+  }
+  stats();
+  mark();
+}
+
+function mark(){
+  kb.querySelectorAll(".k").forEach(e=>e.classList.remove("t"));
+  $("do").textContent="";
+  if(drill&&hint&&tgt){
+    const ks=parse(tgt[0]);
+    kb.querySelectorAll(".k").forEach(e=>e.classList.toggle("t",ks.includes(+e.dataset.k)));
+    if(currentQuiz==="sentence"){
+      $("do").innerHTML='Target stroke: <span class="drill-badge">'+tgt[0]+'</span> &nbsp;('+lab(tgt[0])+')';
+    }else{
+      $("do").innerHTML='Target stroke: <span class="drill-badge">'+tgt[0]+'</span> &nbsp;('+lab(tgt[0])+')';
+    }
+  }
+}
+
+function stats(){
+  const ds=$("ds");
+  if(currentQuiz==="sentence"){
+    const curSentence=SENTENCES[sIndex%SENTENCES.length];
+    ds.innerHTML="Sentence <b>"+((sIndex%SENTENCES.length)+1)+"</b> of <b>"+SENTENCES.length+"</b><br>Word <b>"+(wIndex+1)+"</b> of <b>"+curSentence.items.length+"</b> &bull; Streak <b>"+streak+"</b>";
+  }else{
+    ds.innerHTML="Correct <b>"+ok+"</b> of <b>"+tot+"</b><br>Streak <b>"+streak+"</b>";
+  }
+}
+
+function flash(c){
+  const d=$("drill");
+  d.classList.remove("good","bad");
+  void d.offsetWidth;
+  d.classList.add(c);
+  setTimeout(()=>d.classList.remove(c),350);
+}
+
+function check(o){
+  tot++;
+  const expected=tgt[0];
+  const matched=(o===expected)||
+    (expected==="THURS"&&o==="THUR")||
+    (expected==="THUR"&&o==="THURS")||
+    (expected==="SKWRUPB"&&o==="SKWRAOPB")||
+    (expected==="SKWRAOPB"&&o==="SKWRUPB");
+
+  if(matched){
+    ok++;
+    streak++;
+    flash("good");
+    if(currentQuiz==="sentence"){
+      const curSentence=SENTENCES[sIndex%SENTENCES.length];
+      wIndex++;
+      if(wIndex>=curSentence.items.length){
+        wIndex=0;
+        sIndex=(sIndex+1)%SENTENCES.length;
+      }
+      next();
+    }else{
+      next();
+    }
+  }else{
+    streak=0;
+    flash("bad");
+    stats();
+  }
+}
+
+function setQuizMode(mode){
+  currentQuiz=mode;
+  document.querySelectorAll(".q-btn").forEach(b=>{
+    b.setAttribute("aria-pressed",b.dataset.quiz===mode?"true":"false");
+  });
+  ok=tot=streak=0;
+  wIndex=0;
+  next();
+}
+
+addEventListener("keydown",e=>{
+  if(e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;
+  if($("welcome-modal").classList.contains("open")){
+    if(e.key==="Escape")closeWelcome();
+    return;
+  }
+  if(/INPUT|TEXTAREA/.test(e.target.tagName))return;
+  const k=MAP[e.code];
+  if(k===undefined)return;
+  e.preventDefault();
+  press(e.code,k);
+});
+
+addEventListener("keyup",e=>{
+  if($("welcome-modal").classList.contains("open"))return;
+  if(MAP[e.code]!==undefined){
+    e.preventDefault();
+    release(e.code);
+  }
+});
+
+["pointerup","pointercancel"].forEach(t=>addEventListener(t,e=>release("p"+e.pointerId)));
+addEventListener("blur",()=>{src.clear();stroke.clear();paint()});
+
+$("mode").onclick=e=>{
+  drill=!drill;
+  e.currentTarget.setAttribute("aria-pressed",drill);
+  $("drill").classList.toggle("show",drill);
+  if(drill){
+    ok=tot=streak=0;
+    wIndex=0;
+    next();
+  }else{
+    mark();
+  }
+};
+
+document.querySelectorAll(".q-btn").forEach(btn=>{
+  btn.onclick=()=>setQuizMode(btn.dataset.quiz);
+});
+
+$("skip").onclick=()=>{
+  streak=0;
+  if(currentQuiz==="sentence"){
+    const curSentence=SENTENCES[sIndex%SENTENCES.length];
+    wIndex++;
+    if(wIndex>=curSentence.items.length){
+      wIndex=0;
+      sIndex=(sIndex+1)%SENTENCES.length;
+    }
+    next();
+  }else{
+    next();
+  }
+};
+
+$("hb").onclick=e=>{
+  hint=!hint;
+  e.currentTarget.setAttribute("aria-pressed",hint);
+  mark();
+};
+
+$("hints").onclick=e=>{
+  const on=e.currentTarget.getAttribute("aria-pressed")!=="true";
+  e.currentTarget.setAttribute("aria-pressed",on);
+  kb.classList.toggle("hide",!on);
+};
+
+$("theme").onclick=e=>{
+  const on=e.currentTarget.getAttribute("aria-pressed")!=="true";
+  e.currentTarget.setAttribute("aria-pressed",on);
+  document.documentElement.dataset.theme=on?"dark":"light";
+};
+
+$("cl").onclick=()=>{
+  words.length=0;
+  $("out").textContent="";
+  showTape();
+};
+
+// Modal handlers
+function openWelcome(){
+  $("welcome-modal").classList.add("open");
+}
+function closeWelcome(){
+  $("welcome-modal").classList.remove("open");
+  try{localStorage.setItem("stenoboard_seen","1")}catch(_){}
+}
+
+$("welcome-btn").onclick=openWelcome;
+$("modal-close-btn").onclick=closeWelcome;
+$("welcome-modal").onclick=e=>{
+  if(e.target===$("welcome-modal"))closeWelcome();
+};
+
+$("free-type-btn").onclick=()=>{
+  drill=false;
+  $("mode").setAttribute("aria-pressed","false");
+  $("drill").classList.remove("show");
+  mark();
+  closeWelcome();
+};
+
+$("start-drill-btn").onclick=()=>{
+  drill=true;
+  $("mode").setAttribute("aria-pressed","true");
+  $("drill").classList.add("show");
+  setQuizMode("sentence");
+  closeWelcome();
+};
+
+document.querySelectorAll(".mode-tile").forEach(tile=>{
+  tile.onclick=()=>{
+    const m=tile.dataset.mode;
+    drill=true;
+    $("mode").setAttribute("aria-pressed","true");
+    $("drill").classList.add("show");
+    setQuizMode(m);
+    closeWelcome();
+  };
+});
+
+// Auto show on first load
+try{
+  if(!localStorage.getItem("stenoboard_seen")){
+    openWelcome();
+  }
+}catch(_){
+  openWelcome();
+}
+
+showTape();
+</script>
+</body>
+</html>

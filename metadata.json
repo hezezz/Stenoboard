@@ -1,0 +1,6 @@
+{
+  "name": "Stenoboard",
+  "description": "Interactive machine shorthand keyboard, real-time chording tutor, customizable key mapper, and phrase practice modules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
