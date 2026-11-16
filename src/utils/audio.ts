@@ -2,9 +2,27 @@
 
 class StenoSoundManager {
   private ctx: AudioContext | null = null;
-  public enabled: boolean = true;
+  public enabled: boolean = false;
+
+  constructor() {
+    try {
+      const saved = localStorage.getItem('stenoboard_sound_enabled');
+      if (saved !== null) {
+        this.enabled = saved === 'true';
+      }
+    } catch {}
+  }
+
+  toggleSound(): boolean {
+    this.enabled = !this.enabled;
+    try {
+      localStorage.setItem('stenoboard_sound_enabled', String(this.enabled));
+    } catch {}
+    return this.enabled;
+  }
 
   private initContext() {
+    if (!this.enabled) return;
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
@@ -97,3 +115,4 @@ class StenoSoundManager {
 }
 
 export const stenoAudio = new StenoSoundManager();
+

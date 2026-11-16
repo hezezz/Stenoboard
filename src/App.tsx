@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Keyboard,
   Sparkles,
   BookOpen,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useStenoEngine } from './hooks/useStenoEngine';
 import { StenoboardKeyboard } from './components/StenoboardKeyboard';
@@ -30,6 +32,9 @@ import { parseChord, isChordOrWordMatch } from './utils/stenoParser';
 import { stenoAudio } from './utils/audio';
 
 export default function App() {
+  // Sound toggle (defaults to false / muted)
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => stenoAudio.enabled);
+
   // Hints visibility
   const [showHints, setShowHints] = useState<boolean>(true);
 
@@ -362,6 +367,20 @@ export default function App() {
           >
             <Keyboard className="h-4 w-4 text-[var(--gold)]" />
             <span>Key map</span>
+          </button>
+
+          <button
+            onClick={() => setSoundEnabled(stenoAudio.toggleSound())}
+            aria-pressed={soundEnabled}
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold border transition-all shadow-sm flex items-center gap-1.5 ${
+              soundEnabled
+                ? 'border-[var(--gold)] bg-[var(--gold-bg)] text-[var(--gold2)]'
+                : 'border-[var(--line)] bg-[var(--panel2)] text-[var(--mut)] hover:text-[var(--ink)]'
+            }`}
+            title={soundEnabled ? 'Mute keyboard sound' : 'Unmute keyboard sound'}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            <span>{soundEnabled ? 'Sound ON' : 'Sound OFF'}</span>
           </button>
 
           <button
