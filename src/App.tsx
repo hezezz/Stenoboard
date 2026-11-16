@@ -215,6 +215,9 @@ export default function App() {
     keyMap,
     activeKeys,
     pendingKeys,
+    recentChords,
+    stickyMode,
+    toggleStickyMode,
     togglePendingKey,
     clearPendingKeys,
     commitChord,
@@ -243,7 +246,14 @@ export default function App() {
       }
       if (/INPUT|TEXTAREA/.test((e.target as HTMLElement)?.tagName || '')) return;
 
-      // Spacebar or Enter to send pending mouse chord if any
+      // Escape clears pending latched chord keys
+      if (e.key === 'Escape' && pendingKeys.length > 0) {
+        e.preventDefault();
+        clearPendingKeys();
+        return;
+      }
+
+      // Spacebar or Enter to commit pending chord if any
       if (e.code === 'Space' || e.code === 'Enter') {
         if (pendingKeys.length > 0) {
           e.preventDefault();
@@ -255,12 +265,16 @@ export default function App() {
       const stenoKeyIndex = keyMap[e.code];
       if (stenoKeyIndex !== undefined) {
         e.preventDefault();
-        pressKey(e.code, stenoKeyIndex);
+        if (stickyMode) {
+          togglePendingKey(stenoKeyIndex);
+        } else {
+          pressKey(e.code, stenoKeyIndex);
+        }
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (welcomeOpen || keyMapDrawerOpen) return;
+      if (welcomeOpen || keyMapDrawerOpen || stickyMode) return;
       if (keyMap[e.code] !== undefined) {
         e.preventDefault();
         releaseKey(e.code);
@@ -273,7 +287,18 @@ export default function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [keyMap, pressKey, releaseKey, welcomeOpen, keyMapDrawerOpen, pendingKeys, commitChord]);
+  }, [
+    keyMap,
+    stickyMode,
+    pressKey,
+    releaseKey,
+    togglePendingKey,
+    clearPendingKeys,
+    welcomeOpen,
+    keyMapDrawerOpen,
+    pendingKeys,
+    commitChord,
+  ]);
 
   // Target keys on keyboard during practice
   const targetKeys = useMemo<number[]>(() => {
@@ -386,11 +411,14 @@ export default function App() {
         <StenoboardKeyboard
           activeKeys={activeKeys}
           pendingKeys={pendingKeys}
+          recentChords={recentChords}
+          stickyMode={stickyMode}
           targetKeys={targetKeys}
           showHints={showHints}
           keyMap={keyMap}
           onPress={pressKey}
           onRelease={releaseKey}
+          onToggleStickyMode={toggleStickyMode}
           onTogglePendingKey={togglePendingKey}
           onCommitChord={commitChord}
           onClearPendingKeys={clearPendingKeys}

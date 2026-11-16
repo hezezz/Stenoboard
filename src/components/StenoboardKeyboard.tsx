@@ -1,17 +1,25 @@
 import React from 'react';
-import { Zap, RotateCcw } from 'lucide-react';
+import { Zap, RotateCcw, Pin } from 'lucide-react';
 import { KEY_LAYOUT } from '../data/stenoData';
 import { KeyMap } from '../types/steno';
-import { formatKeyCode, formatChord, translateChord } from '../utils/stenoParser';
+import {
+  formatKeyCode,
+  formatChord,
+  translateChord,
+  lookupMultiStroke,
+} from '../utils/stenoParser';
 
 interface StenoboardKeyboardProps {
   activeKeys: number[];
   pendingKeys: number[];
+  recentChords: string[];
+  stickyMode: boolean;
   targetKeys: number[];
   showHints: boolean;
   keyMap: KeyMap;
   onPress: (sourceId: string, stenoKeyIndex: number) => void;
   onRelease: (sourceId: string) => void;
+  onToggleStickyMode: () => void;
   onTogglePendingKey: (stenoKeyIndex: number) => void;
   onCommitChord: () => void;
   onClearPendingKeys: () => void;
@@ -20,11 +28,14 @@ interface StenoboardKeyboardProps {
 export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
   activeKeys,
   pendingKeys,
+  recentChords,
+  stickyMode,
   targetKeys,
   showHints,
   keyMap,
   onPress,
   onRelease,
+  onToggleStickyMode,
   onTogglePendingKey,
   onCommitChord,
   onClearPendingKeys,
@@ -50,14 +61,18 @@ export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
   const activeSet = new Set(activeKeys);
   const targetSet = new Set(targetKeys);
 
-  // Preview of currently selected chord (whether from mouse click or held keys)
+  // Preview of currently selected chord + live multi-stroke compound check (e.g. TPHEU + TPHA -> Nina)
   const currentChordPreview = activeKeys.length > 0 ? formatChord(activeKeys) : '';
   const currentTranslation = activeKeys.length > 0 ? translateChord(activeKeys) : null;
+  const multiStrokePreview =
+    currentChordPreview && recentChords.length > 0
+      ? lookupMultiStroke([...recentChords, currentChordPreview])
+      : null;
 
   return (
     <div className="mb-5">
       {/* Chord Builder / Status Toolbar */}
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 mb-2.5 rounded-2xl bg-[var(--panel2)] border border-[var(--line)] shadow-md">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-2.5 mb-2.5 rounded-2xl bg-[var(--panel2)] border border-[var(--line)] shadow-md">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[11px] font-mono-steno font-semibold uppercase tracking-wider text-[var(--mut)] shrink-0">
             Current Stroke:
@@ -67,25 +82,53 @@ export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
               <span className="font-mono-steno text-sm font-bold text-[var(--gold2)] px-2 py-0.5 rounded bg-[var(--gold-bg)] border border-[var(--gold)]">
                 {currentChordPreview}
               </span>
-              {currentTranslation?.word && (
-                <span className="text-xs text-[var(--ink)] font-semibold truncate">
-                  → {currentTranslation.word}
+              {multiStrokePreview ? (
+                <span className="text-xs text-[var(--good)] font-bold truncate">
+                  → {multiStrokePreview.word} ({multiStrokePreview.outline})
                 </span>
+              ) : (
+                currentTranslation?.word && (
+                  <span className="text-xs text-[var(--ink)] font-semibold truncate">
+                    → {currentTranslation.word}
+                  </span>
+                )
               )}
             </div>
           ) : (
             <span className="text-xs text-[var(--mut)] italic">
-              Hold keys or click to build chord
+              {stickyMode
+                ? 'Sticky Keys ON: tap/press keys one by one, then press Space'
+                : 'Hold keys or click to build chord'}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <button
+            type="button"
+            tabIndex={-1}
+            onPointerDown={(e) => e.preventDefault()}
+            onClick={onToggleStickyMode}
+            aria-pressed={stickyMode}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              stickyMode
+                ? 'border-[var(--gold)] bg-[var(--gold-bg)] text-[var(--gold2)]'
+                : 'border-[var(--line)] bg-[var(--panel)] text-[var(--mut)] hover:text-[var(--ink)] hover:border-[var(--line-light)]'
+            }`}
+            title="Latch laptop keys & touch taps one by one (bypasses 4-6 key hardware limits)"
+          >
+            <Pin className="h-3.5 w-3.5" />
+            <span>Sticky Keys</span>
+          </button>
+
           {pendingKeys.length > 0 && (
             <button
+              type="button"
+              tabIndex={-1}
+              onPointerDown={(e) => e.preventDefault()}
               onClick={onClearPendingKeys}
               className="p-1.5 rounded-lg border border-[var(--line)] bg-[var(--panel)] text-[var(--mut)] hover:text-[var(--bad)] hover:border-[var(--bad)] transition-colors text-xs flex items-center gap-1"
-              title="Clear selected keys"
+              title="Clear selected keys (Esc)"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Clear</span>
@@ -93,7 +136,10 @@ export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
           )}
 
           <button
-            onClick={onCommitChord}
+            type="button"
+            tabIndex={-1}
+            onPointerDown={(e) => e.preventDefault()}
+            onClick={() => onCommitChord()}
             disabled={activeKeys.length === 0}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeKeys.length > 0
@@ -126,6 +172,7 @@ export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
             <button
               key={`${keyDef.index}-${i}`}
               type="button"
+              tabIndex={-1}
               aria-label={`Steno key ${keyDef.label}`}
               aria-pressed={isActive}
               style={{
@@ -134,24 +181,24 @@ export const StenoboardKeyboard: React.FC<StenoboardKeyboardProps> = ({
               }}
               onPointerDown={(e) => {
                 e.preventDefault();
-                if (e.pointerType === 'mouse') {
-                  // For mouse, toggle key in pending chord so multi-key chords can be clicked
+                if (e.pointerType === 'mouse' || stickyMode) {
+                  // Latch/unlatch key in pending chord so 4-6+ key chords can be clicked or tapped reliably
                   onTogglePendingKey(keyDef.index);
                 } else {
-                  // For touchscreen / stylus, track active pointer
+                  // Multi-touch simultaneous chording
                   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
                   onPress(`p-${e.pointerId}`, keyDef.index);
                 }
               }}
               onPointerUp={(e) => {
                 e.preventDefault();
-                if (e.pointerType !== 'mouse') {
+                if (e.pointerType !== 'mouse' && !stickyMode) {
                   onRelease(`p-${e.pointerId}`);
                 }
               }}
               onPointerCancel={(e) => {
                 e.preventDefault();
-                if (e.pointerType !== 'mouse') {
+                if (e.pointerType !== 'mouse' && !stickyMode) {
                   onRelease(`p-${e.pointerId}`);
                 }
               }}

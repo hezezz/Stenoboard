@@ -46,10 +46,10 @@ export const StenoCheatSheet: React.FC = () => {
               3. Morphological Derivatives
             </h4>
             <ul className="list-disc list-inside space-y-1">
-              <li><strong className="text-[var(--ink)]">Plurals / 3rd Person (-S):</strong> Add <code className="text-[var(--gold2)]">-S</code> to a brief (e.g., <code className="text-[var(--gold2)]">TA</code> take + <code className="text-[var(--gold2)]">-S</code> = <code className="text-[var(--gold2)]">TAS</code> takes; <code className="text-[var(--gold2)]">ST</code> street + <code className="text-[var(--gold2)]">-S</code> = <code className="text-[var(--gold2)]">STS</code> streets).</li>
-              <li><strong className="text-[var(--ink)]">Past Tense (-D):</strong> Add <code className="text-[var(--gold2)]">-D</code> in the same stroke (e.g., <code className="text-[var(--gold2)]">PURD</code> purchased, <code className="text-[var(--gold2)]">OD-D</code> ordered).</li>
-              <li><strong className="text-[var(--ink)]">Progressive (-G):</strong> Final <code className="text-[var(--gold2)]">-G</code> for words ending in -ing (e.g., <code className="text-[var(--gold2)]">PAG</code> paying, <code className="text-[var(--gold2)]">TRIG</code> trying, <code className="text-[var(--gold2)]">TAG</code> taking).</li>
-              <li><strong className="text-[var(--ink)]">Suffixes:</strong> <code className="text-[var(--gold2)]">-MT</code> (-PLT) for -ment (<code className="text-[var(--gold2)]">DOKMT</code> document), <code className="text-[var(--gold2)]">-GS</code> for -shun (<code className="text-[var(--gold2)]">OGS</code> ocean).</li>
+              <li><strong className="text-[var(--ink)]">Plurals / 3rd Person (-S):</strong> Add <code className="text-[var(--gold2)]">-S</code> to a brief (e.g., <code className="text-[var(--gold2)]">TA</code> take + <code className="text-[var(--gold2)]">-S</code> = <code className="text-[var(--gold2)]">TAS</code> takes; <code className="text-[var(--gold2)]">ST</code> street + <code className="text-[var(--gold2)]">-S</code> = <code className="text-[var(--gold2)]">ST-S</code> streets).</li>
+              <li><strong className="text-[var(--ink)]">Past Tense (-D):</strong> Add <code className="text-[var(--gold2)]">-D</code> in the same stroke (e.g., <code className="text-[var(--gold2)]">PURD</code> purchased, <code className="text-[var(--gold2)]">SEPD</code> accepted).</li>
+              <li><strong className="text-[var(--ink)]">Progressive (-G):</strong> Final <code className="text-[var(--gold2)]">-G</code> for words ending in -ing (e.g., <code className="text-[var(--gold2)]">PAG</code> paying, <code className="text-[var(--gold2)]">TREUG</code> trying, <code className="text-[var(--gold2)]">TAG</code> taking).</li>
+              <li><strong className="text-[var(--ink)]">Suffixes & Multi-Stroke:</strong> <code className="text-[var(--gold2)]">-PLT</code> (-ment: <code className="text-[var(--gold2)]">TKOPLT</code> document), <code className="text-[var(--gold2)]">-GS</code> (-shun: <code className="text-[var(--gold2)]">OGS</code> ocean), and multi-stroke names (<code className="text-[var(--gold2)]">TPHEU</code> + <code className="text-[var(--gold2)]">TPHA</code> = <strong>Nina</strong>).</li>
             </ul>
           </div>
 
@@ -60,7 +60,7 @@ export const StenoCheatSheet: React.FC = () => {
             </h4>
             <ul className="list-disc list-inside space-y-1">
               <li><strong className="text-[var(--ink)]">Number Bar (#):</strong> Depress any number key (1-0) along with upper keys: <code className="text-[var(--gold2)]">#S</code>=1, <code className="text-[var(--gold2)]">#T</code>=2, <code className="text-[var(--gold2)]">#P</code>=3, <code className="text-[var(--gold2)]">#H</code>=4, <code className="text-[var(--gold2)]">#A</code>=5, <code className="text-[var(--gold2)]">#F</code>=6, <code className="text-[var(--gold2)]">#P</code>=7, <code className="text-[var(--gold2)]">#L</code>=8, <code className="text-[var(--gold2)]">#T</code>=9, <code className="text-[var(--gold2)]">#O</code>=0.</li>
-              <li><strong className="text-[var(--ink)]">Punctuation:</strong> Period = <code className="text-[var(--gold2)]">FPLT</code>, Comma = <code className="text-[var(--gold2)]">RBGS</code>, Question Mark = <code className="text-[var(--gold2)]">STPH</code>.</li>
+              <li><strong className="text-[var(--ink)]">Punctuation:</strong> Period = <code className="text-[var(--gold2)]">-FPLT</code>, Comma = <code className="text-[var(--gold2)]">-RBGS</code>, Question Mark = <code className="text-[var(--gold2)]">STPH</code>.</li>
               <li><strong className="text-[var(--ink)]">Star (*) alone:</strong> Deletes the previous word like a typewriter correction stamp.</li>
             </ul>
           </div>
@@ -69,7 +69,7 @@ export const StenoCheatSheet: React.FC = () => {
         <div className="p-3 rounded-xl bg-black/40 border border-[var(--line)] flex items-start gap-2.5 text-[11px] text-[var(--mut)]">
           <AlertTriangle className="h-4 w-4 text-[var(--gold2)] shrink-0 mt-0.5" />
           <span>
-            <strong className="text-[var(--ink)]">Hardware Key Rollover Note:</strong> Standard laptop keyboards typically register 4 to 6 simultaneous keys (2KRO/6KRO). If chords drop keys when pressed together, a gaming keyboard with N-Key Rollover (NKRO) or touchscreen multi-touch delivers 100% simultaneous input fidelity.
+            <strong className="text-[var(--ink)]">4–6+ Key Rollover Tip:</strong> Standard laptop keyboards often drop keys when 4 to 6 keys are held down together (2KRO/4KRO). Toggle <strong>Sticky Keys</strong> above the keyboard (or click keys on screen) to latch any 4–6+ key combination one by one, then press <strong>Space</strong> to stroke.
           </span>
         </div>
       </div>

@@ -3,6 +3,7 @@ import {
   NUM_MAP,
   BASE_DICT,
   PHRASING_DICT,
+  MULTI_STROKE_DICT,
   INITIAL_ABBRS,
   FINAL_ABBRS,
   DERIVATIVE_RULES,
@@ -32,14 +33,17 @@ export function formatChord(keys: number[]): string {
 
 export const CHORD_ALIASES: Record<string, string> = {
   MR: 'PHR',
-  MRS: 'PHRS',
+  MRS: 'PHR-S',
+  PHRS: 'PHR-S',
   V: 'SR',
   NOV: 'TPHOF',
   AV: 'AF',
   GV: 'TKPW-F',
+  TKPWF: 'TKPW-F',
   SEV: 'SEF',
   VEN: 'SREPB',
   NV: 'TPH-F',
+  TPHF: 'TPH-F',
   TRIG: 'TREUG',
   SEMT: 'SEPLT',
   COMT: 'KOPLT',
@@ -51,6 +55,30 @@ export const CHORD_ALIASES: Record<string, string> = {
   IL: 'EUL',
   LAN: 'HRAPB',
   PH_PBL: 'PH-PBL',
+  'KO-B': 'KOB',
+  SRB: 'SR-B',
+  'O-T': 'OT',
+  'O-UR': 'OUR',
+  'R-U': 'RU',
+  'U-R': 'UR',
+  YT: 'KWR-T',
+  YS: 'KWR-S',
+  KWRT: 'KWR-T',
+  KWRS: 'KWR-S',
+  KWRR: 'KWR-R',
+  FPLT: '-FPLT',
+  RBGS: '-RBGS',
+  SPBLG: 'S-PBLG',
+  TPPB: 'TP-PB',
+  TPHP: 'TPH-P',
+  NLG: 'TPH-LG',
+  FIG: 'TPEUG',
+  FOL: 'TPOL',
+  DIF: 'TKEUF',
+  ANS: 'APBS',
+  GEN: 'TKPWEPB',
+  PRG: 'PR-G',
+  STS: 'ST-S',
 };
 
 export function parseChord(chordStr: string): number[] {
@@ -86,6 +114,132 @@ export interface TranslationResult {
   label: string;
 }
 
+// Phonetic maps for greedy longest-prefix composition across all alphabet combinations
+const INITIAL_PHONETIC_ENTRIES: [string, string][] = Object.entries(INITIAL_CONSONANTS)
+  .map(([k, v]) => [k, v.toLowerCase()] as [string, string])
+  .sort((a, b) => b[0].length - a[0].length);
+
+const VOWEL_PHONETIC_MAP: Record<string, string> = {
+  A: 'a',
+  O: 'o',
+  E: 'e',
+  U: 'u',
+  EU: 'i',
+  AE: 'a',
+  AO: 'oo',
+  OE: 'o',
+  OU: 'ou',
+  AU: 'au',
+  AEU: 'ai',
+  AOU: 'oo',
+  OEU: 'oi',
+  AOE: 'ee',
+  AOEU: 'ie',
+  EO: 'eo',
+};
+
+const FINAL_PHONETIC_ENTRIES: [string, string][] = [
+  ['RPBLGD', 'rged'],
+  ['PBLGD', 'ged'],
+  ['RPBLG', 'rj'],
+  ['PBLG', 'j'],
+  ['FRPB', 'nch'],
+  ['FRPL', 'mpl'],
+  ['PBTS', 'nts'],
+  ['PBSD', 'nds'],
+  ['BGS', 'x'],
+  ['FRP', 'rch'],
+  ['FRB', 'rv'],
+  ['RPL', 'rm'],
+  ['PLT', 'mt'],
+  ['PLS', 'ms'],
+  ['RPLS', 'rms'],
+  ['PBG', 'ng'],
+  ['PBT', 'nt'],
+  ['PBD', 'nd'],
+  ['PBS', 'ns'],
+  ['FP', 'ch'],
+  ['RB', 'sh'],
+  ['PB', 'n'],
+  ['PL', 'm'],
+  ['BG', 'k'],
+  ['GS', 'shun'],
+  ['FS', 'vs'],
+  ['FD', 'vd'],
+  ['FG', 'vg'],
+  ['FT', 'ft'],
+  ['FL', 'fl'],
+  ['LG', 'lg'],
+  ['LD', 'ld'],
+  ['LT', 'lt'],
+  ['LS', 'ls'],
+  ['RT', 'rt'],
+  ['RS', 'rs'],
+  ['RD', 'rd'],
+  ['PS', 'ps'],
+  ['PT', 'pt'],
+  ['TS', 'ts'],
+  ['F', 'f'],
+  ['R', 'r'],
+  ['P', 'p'],
+  ['B', 'b'],
+  ['L', 'l'],
+  ['G', 'g'],
+  ['T', 't'],
+  ['S', 's'],
+  ['D', 'd'],
+  ['Z', 'z'],
+];
+
+function greedyDecode(str: string, entries: [string, string][]): string {
+  if (!str) return '';
+  let out = '';
+  let pos = 0;
+  while (pos < str.length) {
+    let matched = false;
+    for (const [pattern, sound] of entries) {
+      if (str.startsWith(pattern, pos)) {
+        out += sound;
+        pos += pattern.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      out += str[pos].toLowerCase();
+      pos += 1;
+    }
+  }
+  return out;
+}
+
+function assemblePhonetic(leftStr: string, midStr: string, rightRawStr: string): string {
+  const vowelOnly = midStr.replace(/\*/g, '');
+  const initSound = greedyDecode(leftStr, INITIAL_PHONETIC_ENTRIES);
+  const vowelSound = VOWEL_PHONETIC_MAP[vowelOnly] ?? vowelOnly.toLowerCase();
+  const finalSound = greedyDecode(rightRawStr, FINAL_PHONETIC_ENTRIES);
+  return initSound + vowelSound + finalSound;
+}
+
+export interface MultiStrokeMatch {
+  outline: string;
+  word: string;
+  strokeCount: number;
+}
+
+export function lookupMultiStroke(chords: string[]): MultiStrokeMatch | null {
+  const maxLen = Math.min(chords.length, 4);
+  for (let len = maxLen; len >= 2; len--) {
+    const slice = chords.slice(chords.length - len);
+    const outline = slice.join('/');
+    const word = MULTI_STROKE_DICT[outline];
+    if (word) {
+      return { outline, word, strokeCount: len };
+    }
+  }
+  return null;
+}
+
 export function translateChord(keys: number[]): TranslationResult {
   const sorted = [...new Set(keys)].sort((a, b) => a - b);
   if (sorted.length === 0) {
@@ -101,6 +255,16 @@ export function translateChord(keys: number[]): TranslationResult {
       word: '',
       isCorrection: true,
       label: 'Correction [Delete Word]',
+    };
+  }
+
+  // Number bar alone
+  if (sorted.length === 1 && sorted[0] === 0) {
+    return {
+      formattedChord: '#',
+      word: '#',
+      isCorrection: false,
+      label: 'Number Bar (#)',
     };
   }
 
@@ -142,19 +306,14 @@ export function translateChord(keys: number[]): TranslationResult {
   }
 
   // 4. Two-Abbreviation Single-Stroke Rule:
-  // e.g. Initial T ("to") + Final -T ("the") => "to the"
-  // e.g. Initial W ("with") + Final -T ("the") => "with the"
-  // e.g. Initial K ("can") + Final -B ("be") => "can be"
-  // e.g. Initial TP ("if") + Final -T ("the") => "if the"
-  // e.g. Initial S ("is") + Final -T ("the") => "is the"
-  // e.g. Initial HR ("will") + Final -B ("be") => "will be"
   const leftKeys = sorted.filter((k) => k >= 1 && k <= 7);
   const midKeys = sorted.filter((k) => k >= 8 && k <= 12);
   const rightKeys = sorted.filter((k) => k >= 13 && k <= 22);
 
   const leftStr = leftKeys.map((k) => STENO_ORDER[k]).join('');
   const midStr = midKeys.map((k) => STENO_ORDER[k]).join('');
-  const rightStr = '-' + rightKeys.map((k) => STENO_ORDER[k]).join('');
+  const rightRawStr = rightKeys.map((k) => STENO_ORDER[k]).join('');
+  const rightStr = rightRawStr ? '-' + rightRawStr : '';
 
   if (leftStr && rightKeys.length > 0) {
     const leftAbbr = INITIAL_ABBRS[leftStr];
@@ -279,16 +438,18 @@ export function translateChord(keys: number[]): TranslationResult {
     }
   }
 
-  // 6. Consonant / Vowel Compound Assembly fallback
-  const initialName = INITIAL_CONSONANTS[leftStr] || leftStr;
-  const finalName = FINAL_CONSONANTS[rightStr] || rightStr;
-  const labelParts = [initialName, midStr, finalName].filter(Boolean).join('');
+  // 6. Full Alphabet & Phonetic Consonant/Vowel Compound Assembly fallback
+  const phoneticWord = assemblePhonetic(leftStr, midStr, rightRawStr);
+  const initialName = INITIAL_CONSONANTS[leftStr] || greedyDecode(leftStr, INITIAL_PHONETIC_ENTRIES).toUpperCase();
+  const vowelLabel = midStr.replace(/\*/g, '').toLowerCase();
+  const finalName = FINAL_CONSONANTS[rightStr] || greedyDecode(rightRawStr, FINAL_PHONETIC_ENTRIES).toUpperCase();
+  const labelParts = [initialName, vowelLabel, finalName].filter(Boolean).join('');
 
   return {
     formattedChord: rawChord,
-    word: `[${rawChord}]`,
+    word: phoneticWord || `[${rawChord}]`,
     isCorrection: false,
-    label: labelParts || rawChord,
+    label: phoneticWord || labelParts || rawChord,
   };
 }
 
@@ -356,11 +517,6 @@ export function isChordOrWordMatch(
 ): boolean {
   if (committedChord === expectedChord) return true;
 
-  // Normalized chord match (strip hyphens)
-  const normCommitted = committedChord.replace(/-/g, '');
-  const normExpected = expectedChord.replace(/-/g, '');
-  if (normCommitted === normExpected && normExpected.length > 0) return true;
-
   // Equivalent chord representations across curriculum modules
   const equivMap: Record<string, string[]> = {
     T: ['T', '-T'],
@@ -408,18 +564,18 @@ export function isChordOrWordMatch(
     HRR: ['HRR', 'HR-R'],
     'T-T': ['TT', 'T-T'],
     TT: ['TT', 'T-T'],
-    'S-T': ['ST', 'S-T'],
-    ST: ['ST', 'S-T'],
     'W-T': ['WT', 'W-T'],
     WT: ['WT', 'W-T'],
     'K-B': ['KB', 'K-B'],
     KB: ['KB', 'K-B'],
+    KOB: ['KOB', 'KO-B'],
+    'KO-B': ['KOB', 'KO-B'],
+    'SR-B': ['SRB', 'SR-B'],
+    SRB: ['SRB', 'SR-B'],
     'HR-B': ['HRB', 'HR-B'],
     HRB: ['HRB', 'HR-B'],
     'TP-T': ['TPT', 'TP-T'],
     TPT: ['TPT', 'TP-T'],
-    'OD-D': ['ODD', 'OD-D'],
-    ODD: ['ODD', 'OD-D'],
     'TA-S': ['TAS', 'TA-S'],
     TAS: ['TAS', 'TA-S'],
     SAT: ['SAT', 'SA-T'],
@@ -469,6 +625,10 @@ export function isChordOrWordMatch(
     HRAPB: ['LAN', 'HRAPB'],
     PH_PBL: ['PH_PBL', 'PH-PBL'],
     'PH-PBL': ['PH_PBL', 'PH-PBL'],
+    '-FPLT': ['FPLT', '-FPLT'],
+    FPLT: ['FPLT', '-FPLT'],
+    '-RBGS': ['RBGS', '-RBGS', 'R-BGS'],
+    'R-BGS': ['RBGS', '-RBGS', 'R-BGS'],
   };
 
   if (equivMap[expectedChord]?.includes(committedChord)) return true;
